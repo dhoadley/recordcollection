@@ -1,0 +1,30 @@
+{% if albums %}
+<p class="text-zinc-500 text-sm mb-4">{{ albums|length }} record{% if albums|length != 1 %}s{% endif %}</p>
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+    {% for album in albums %}
+    <a href="/records/{{ album.id }}"
+       class="bg-zinc-800 rounded-lg overflow-hidden hover:bg-zinc-700 transition-colors">
+        {% if album.cover_art_url %}
+        <img src="{{ album.cover_art_url }}" alt="{{ album.title }}"
+             class="w-full aspect-square object-cover" loading="lazy">
+        {% else %}
+        <div class="w-full aspect-square bg-zinc-700 flex items-center justify-center">
+            <span class="text-zinc-500 text-3xl font-bold tracking-widest">LP</span>
+        </div>
+        {% endif %}
+        <div class="p-3">
+            <div class="font-medium text-sm truncate">{{ album.title }}</div>
+            <div class="text-zinc-400 text-xs truncate mt-0.5">{{ album.artist }}</div>
+            {% if album.year %}
+            <div class="text-zinc-500 text-xs mt-0.5">{{ album.year }}</div>
+            {% endif %}
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-20 text-zinc-500">
+    <p class="text-lg mb-2">No records found.</p>
+    <a href="/add" class="text-rose-500 hover:text-rose-400 text-sm transition-colors">Add your first record</a>
+</div>
+{% endif %}

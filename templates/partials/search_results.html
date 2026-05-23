@@ -1,0 +1,29 @@
+{% if albums %}
+<div class="grid grid-cols-1 gap-1.5 max-h-72 overflow-y-auto">
+    {% for album in albums %}
+    <button type="button"
+            data-artist="{{ album.artist }}"
+            data-title="{{ album.title }}"
+            data-year="{{ album.year }}"
+            data-genre="{{ album.genre }}"
+            data-art="{{ album.cover_art_url }}"
+            onclick="selectAlbum(this)"
+            class="flex items-center gap-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg p-2.5 text-left transition-colors border border-zinc-700 w-full">
+        {% if album.thumb %}
+        <img src="{{ album.thumb }}" alt="" class="w-10 h-10 rounded object-cover flex-shrink-0">
+        {% else %}
+        <div class="w-10 h-10 bg-zinc-600 rounded flex-shrink-0"></div>
+        {% endif %}
+        <div class="min-w-0">
+            <div class="text-sm font-medium truncate">{{ album.title }}</div>
+            <div class="text-zinc-400 text-xs truncate">{{ album.artist }}</div>
+            {% if album.year %}
+            <div class="text-zinc-500 text-xs">{{ album.year }}</div>
+            {% endif %}
+        </div>
+    </button>
+    {% endfor %}
+</div>
+{% else %}
+<p class="text-zinc-500 text-sm mt-2">No results found.</p>
+{% endif %}
