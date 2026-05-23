@@ -2,8 +2,10 @@
 <p class="text-zinc-500 text-sm mb-4">{{ albums|length }} record{% if albums|length != 1 %}s{% endif %}</p>
 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
     {% for album in albums %}
-    <a href="/records/{{ album.id }}"
-       class="bg-zinc-800 rounded-lg overflow-hidden hover:bg-zinc-700 transition-colors">
+    <div hx-get="/records/{{ album.id }}/modal"
+         hx-target="#modal-container"
+         hx-swap="innerHTML"
+         class="cursor-pointer bg-zinc-800 rounded-lg overflow-hidden transition-all duration-200 hover:scale-[1.03] hover:shadow-lg hover:shadow-black/50 hover:ring-1 hover:ring-rose-500/30">
         {% if album.cover_art_url %}
         <img src="{{ album.cover_art_url }}" alt="{{ album.title }}"
              class="w-full aspect-square object-cover" loading="lazy">
@@ -19,7 +21,7 @@
             <div class="text-zinc-500 text-xs mt-0.5">{{ album.year }}</div>
             {% endif %}
         </div>
-    </a>
+    </div>
     {% endfor %}
 </div>
 {% else %}

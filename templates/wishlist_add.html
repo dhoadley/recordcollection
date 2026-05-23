@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block title %}Add Record — My Records{% endblock %}
+{% block title %}Add to Wishlist — My Records{% endblock %}
 {% block content %}
 
 <div class="max-w-lg mx-auto">
-    <h1 class="text-xl font-bold mb-6">Add a Record</h1>
+    <h1 class="text-xl font-bold mb-6">Add to Wishlist</h1>
 
     <div class="mb-6">
         <label class="block text-sm font-medium text-zinc-400 mb-1.5">Search Apple Music</label>
@@ -18,7 +18,10 @@
         <div id="search-results" class="mt-2"></div>
     </div>
 
-    <form method="POST" action="/add" class="space-y-4">
+    <div id="collection-check"></div>
+    <div id="wishlist-check"></div>
+
+    <form method="POST" action="/wishlist/add" class="space-y-4 mt-4">
         <div>
             <label class="block text-sm font-medium text-zinc-400 mb-1.5" for="artist">Artist</label>
             <input type="text" id="artist" name="artist" required
@@ -48,8 +51,6 @@
 
         <input type="hidden" id="cover_art_url" name="cover_art_url">
 
-        <div id="collection-check"></div>
-
         <div id="art-preview" class="hidden">
             <label class="block text-sm font-medium text-zinc-400 mb-1.5">Cover Art</label>
             <img id="art-img" src="" alt="Cover art" class="w-24 h-24 rounded-lg object-cover">
@@ -58,9 +59,9 @@
         <div class="flex gap-3 pt-2">
             <button type="submit"
                     class="flex-1 bg-rose-600 hover:bg-rose-500 text-white py-2.5 rounded-lg font-medium transition-colors">
-                Save Record
+                Add to Wishlist
             </button>
-            <a href="/"
+            <a href="/wishlist"
                class="px-6 py-2.5 border border-zinc-700 rounded-lg text-zinc-400 hover:text-white hover:border-zinc-500 transition-colors text-center">
                 Cancel
             </a>
@@ -90,6 +91,10 @@ function selectAlbum(el) {
     fetch(`/collection-check?artist=${encodeURIComponent(el.dataset.artist)}&title=${encodeURIComponent(el.dataset.title)}`)
         .then(r => r.text())
         .then(html => { document.getElementById('collection-check').innerHTML = html; });
+
+    fetch(`/wishlist-check?artist=${encodeURIComponent(el.dataset.artist)}&title=${encodeURIComponent(el.dataset.title)}`)
+        .then(r => r.text())
+        .then(html => { document.getElementById('wishlist-check').innerHTML = html; });
 }
 </script>
 

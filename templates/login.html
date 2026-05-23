@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Login — My Records{% endblock %}
+{% block content %}
+
+<div class="max-w-sm mx-auto mt-16">
+    <h1 class="font-display text-5xl tracking-wider text-center mb-8 text-white">My Records</h1>
+
+    <form method="POST" action="/login" class="bg-zinc-800 rounded-xl p-6 space-y-4">
+        <div>
+            <label class="block text-sm font-medium text-zinc-400 mb-1.5" for="password">Password</label>
+            <input type="password" id="password" name="password" required autofocus
+                   class="w-full bg-zinc-900 border {% if error %}border-red-500{% else %}border-zinc-700{% endif %} rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-rose-500">
+            {% if error %}
+            <p class="text-red-400 text-xs mt-1.5">Incorrect password.</p>
+            {% endif %}
+        </div>
+        <button type="submit"
+                class="w-full bg-rose-600 hover:bg-rose-500 text-white py-2.5 rounded-lg font-medium transition-colors">
+            Log in
+        </button>
+    </form>
+</div>
+
+{% endblock %}

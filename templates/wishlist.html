@@ -1,9 +1,9 @@
 {% extends "base.html" %}
-{% block nav_action %}<a href="/add" class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-1.5 rounded-md text-sm font-medium transition-colors">+ Add Record</a>{% endblock %}
+{% block nav_action %}<a href="/wishlist/add" class="bg-rose-600 hover:bg-rose-500 text-white px-4 py-1.5 rounded-md text-sm font-medium transition-colors">+ Add to Wishlist</a>{% endblock %}
 {% block content %}
 
-<form hx-get="/"
-      hx-target="#album-grid"
+<form hx-get="/wishlist"
+      hx-target="#wishlist-grid"
       hx-trigger="input changed delay:300ms from:input[name='q'], change from:select"
       class="flex flex-col sm:flex-row gap-3 mb-6">
     <input type="text" name="q" value="{{ q }}"
@@ -25,8 +25,8 @@
     </select>
 </form>
 
-<div id="album-grid">
-    {% include "partials/album_list.html" %}
+<div id="wishlist-grid">
+    {% include "partials/wishlist_list.html" %}
 </div>
 
 {% endblock %}
