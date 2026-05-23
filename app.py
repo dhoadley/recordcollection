@@ -213,6 +213,86 @@ def delete(id):
     return redirect(url_for('index'))
 
 
+def _musicbrainz_covers(q):
+    try:
+        resp = requests.get(
+            'https://musicbrainz.org/ws/2/release',
+            params={'query': q, 'fmt': 'json', 'limit': 16},
+            headers={'User-Agent': 'RecordCollection/1.0 (dave.hoadley@gmail.com)'},
+            timeout=8
+        )
+        releases = resp.json().get('releases', [])
+    except Exception:
+        return []
+    covers = []
+    for r in releases:
+        mbid = r.get('id')
+        if mbid:
+            covers.append({
+                'thumb': f'https://coverartarchive.org/release/{mbid}/front-250',
+                'full': f'https://coverartarchive.org/release/{mbid}/front-500',
+            })
+    return covers
+
+
+@app.route('/records/<int:id>/art-search')
+@login_required
+def records_art_search(id):
+    with db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT artist, title FROM albums WHERE id = %s", (id,))
+            album = cur.fetchone()
+    if not album:
+        return ''
+    return render_template('partials/art_search_modal.html',
+                           table='records', id=id,
+                           artist=album['artist'], title=album['title'])
+
+
+@app.route('/records/<int:id>/art', methods=['POST'])
+@login_required
+def records_update_art(id):
+    url = request.form.get('cover_art_url', '').strip()
+    with db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE albums SET cover_art_url = %s WHERE id = %s", (url, id))
+    return ('', 204)
+
+
+@app.route('/wishlist/<int:id>/art-search')
+@login_required
+def wishlist_art_search(id):
+    with db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("SELECT artist, title FROM wishlist WHERE id = %s", (id,))
+            item = cur.fetchone()
+    if not item:
+        return ''
+    return render_template('partials/art_search_modal.html',
+                           table='wishlist', id=id,
+                           artist=item['artist'], title=item['title'])
+
+
+@app.route('/wishlist/<int:id>/art', methods=['POST'])
+@login_required
+def wishlist_update_art(id):
+    url = request.form.get('cover_art_url', '').strip()
+    with db() as conn:
+        with conn.cursor() as cur:
+            cur.execute("UPDATE wishlist SET cover_art_url = %s WHERE id = %s", (url, id))
+    return ('', 204)
+
+
+@app.route('/musicbrainz-art')
+@login_required
+def musicbrainz_art():
+    q = request.args.get('q', '').strip()
+    table = request.args.get('table', 'records')
+    id = request.args.get('id', 0)
+    covers = _musicbrainz_covers(q) if q else []
+    return render_template('partials/art_results.html', covers=covers, table=table, id=id)
+
+
 @app.route('/collection-check')
 @login_required
 def collection_check():

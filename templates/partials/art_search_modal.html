@@ -1,0 +1,24 @@
+<div class="fixed inset-0 bg-black/85 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+     onclick="if(event.target===this)closeArtModal()">
+    <div class="bg-zinc-800 rounded-t-2xl sm:rounded-xl w-full sm:max-w-lg flex flex-col max-h-[80vh]"
+         onclick="event.stopPropagation()">
+        <div class="flex items-center justify-between px-4 py-3 border-b border-zinc-700 flex-shrink-0">
+            <h3 class="font-medium text-sm">Change Cover Art</h3>
+            <button onclick="closeArtModal()" class="text-zinc-400 hover:text-white text-xl leading-none">&times;</button>
+        </div>
+        <div class="px-4 pt-3 flex-shrink-0">
+            <input type="text"
+                   name="q"
+                   value="{{ artist }} {{ title }}"
+                   autocomplete="off"
+                   placeholder="Search MusicBrainz..."
+                   class="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-rose-500 placeholder-zinc-500"
+                   hx-get="/musicbrainz-art?table={{ table }}&id={{ id }}"
+                   hx-target="#art-results"
+                   hx-trigger="load, input changed delay:500ms">
+        </div>
+        <div id="art-results" class="overflow-y-auto p-4">
+            <p class="text-zinc-500 text-sm text-center py-4">Searching...</p>
+        </div>
+    </div>
+</div>

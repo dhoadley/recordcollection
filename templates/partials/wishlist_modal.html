@@ -11,6 +11,12 @@
                 <span class="text-zinc-500 text-6xl font-display tracking-widest">LP</span>
             </div>
             {% endif %}
+            <button hx-get="/wishlist/{{ item.id }}/art-search"
+                    hx-target="#art-modal"
+                    hx-swap="innerHTML"
+                    class="absolute bottom-2 left-2 bg-black/50 hover:bg-black/70 text-white text-xs px-2 py-1 rounded-md transition-colors">
+                Change art
+            </button>
             <button onclick="closeModal()"
                     class="absolute top-3 right-3 bg-black/50 hover:bg-black/70 text-white rounded-full w-8 h-8 flex items-center justify-center text-lg leading-none transition-colors">
                 &times;

@@ -53,10 +53,25 @@
         {% block content %}{% endblock %}
     </main>
     <div id="modal-container"></div>
+    <div id="art-modal"></div>
     <script>
         function closeModal() {
             document.getElementById('modal-container').innerHTML = '';
             document.body.style.overflow = '';
+        }
+        function closeArtModal() {
+            document.getElementById('art-modal').innerHTML = '';
+        }
+        function selectArt(table, id, fullUrl) {
+            fetch(`/${table}/${id}/art`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                body: 'cover_art_url=' + encodeURIComponent(fullUrl)
+            }).then(() => {
+                closeArtModal();
+                closeModal();
+                location.reload();
+            });
         }
         document.getElementById('modal-container').addEventListener('htmx:afterSettle', function() {
             if (this.innerHTML.trim()) document.body.style.overflow = 'hidden';
