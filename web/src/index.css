@@ -14,4 +14,7 @@ body,
 body {
   overflow-x: clip;
   overscroll-behavior-x: none;
+  background-color: var(--color-zinc-900);
+  color: var(--color-zinc-100);
+  color-scheme: dark;
 }
