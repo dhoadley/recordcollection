@@ -26,6 +26,11 @@ export default function ArtSearchModal({ table, id, artist, title, onClose, onSa
     onSaved()
   }
 
+  async function removeArt() {
+    await supabase.from(table).update({ cover_art_url: null }).eq('id', id)
+    onSaved()
+  }
+
   return (
     <div
       className="fixed inset-0 bg-black/85 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
@@ -51,13 +56,17 @@ export default function ArtSearchModal({ table, id, artist, title, onClose, onSa
           />
         </div>
         <div className="overflow-y-auto p-4">
-          {loading ? (
-            <p className="text-zinc-500 text-sm text-center py-4">Searching…</p>
-          ) : covers.length === 0 ? (
-            <p className="text-zinc-500 text-sm text-center py-4">No results found.</p>
-          ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-              {covers.map((cover, i) =>
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+            <button
+              type="button"
+              onClick={removeArt}
+              className="aspect-square rounded-lg border-2 border-dashed border-zinc-600 hover:border-rose-500 flex flex-col items-center justify-center gap-1 text-zinc-500 hover:text-rose-400 transition-colors focus:outline-none"
+            >
+              <span className="text-2xl leading-none">&times;</span>
+              <span className="text-[10px] uppercase tracking-wide">No art</span>
+            </button>
+            {!loading &&
+              covers.map((cover, i) =>
                 hidden[i] ? null : (
                   <button
                     key={cover.full}
@@ -74,7 +83,10 @@ export default function ArtSearchModal({ table, id, artist, title, onClose, onSa
                   </button>
                 )
               )}
-            </div>
+          </div>
+          {loading && <p className="text-zinc-500 text-sm text-center py-4">Searching…</p>}
+          {!loading && covers.length === 0 && (
+            <p className="text-zinc-500 text-sm text-center py-4">No other results found.</p>
           )}
         </div>
       </div>

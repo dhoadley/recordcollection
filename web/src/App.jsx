@@ -3,7 +3,6 @@ import { useAuth } from './context/AuthContext'
 import Login from './pages/Login'
 import CollectionPage from './pages/CollectionPage'
 import RecordFormPage from './pages/RecordFormPage'
-import Detail from './pages/Detail'
 
 function RequireAuth({ children }) {
   const { session, loading } = useAuth()
@@ -43,10 +42,10 @@ export default function App() {
         }
       />
       <Route
-        path="/records/:id"
+        path="/records/:id/edit"
         element={
           <RequireAuth>
-            <Detail />
+            <RecordFormPage table="albums" />
           </RequireAuth>
         }
       />
@@ -60,6 +59,14 @@ export default function App() {
       />
       <Route
         path="/wishlist/add"
+        element={
+          <RequireAuth>
+            <RecordFormPage table="wishlist" />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/wishlist/:id/edit"
         element={
           <RequireAuth>
             <RecordFormPage table="wishlist" />

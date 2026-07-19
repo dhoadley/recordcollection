@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { TABLES } from '../lib/tables'
+import { defaultSortArtist } from '../lib/sorting'
 import Header from '../components/Header'
 import DetailModal from '../components/DetailModal'
 
@@ -18,7 +19,7 @@ export default function CollectionPage({ table }) {
     const { data, error } = await supabase
       .from(table)
       .select('*')
-      .order('artist')
+      .order('sort_artist')
       .order('title')
     if (!error) setRows(data || [])
     setLoading(false)
@@ -36,13 +37,15 @@ export default function CollectionPage({ table }) {
       ),
     [rows]
   )
-  const artists = useMemo(
-    () =>
-      [...new Set(rows.map((r) => r.artist).filter(Boolean))].sort((a, b) =>
-        a.localeCompare(b)
-      ),
-    [rows]
-  )
+  const artists = useMemo(() => {
+    const sortKeys = new Map()
+    for (const r of rows) {
+      if (r.artist && !sortKeys.has(r.artist)) {
+        sortKeys.set(r.artist, r.sort_artist || defaultSortArtist(r.artist))
+      }
+    }
+    return [...sortKeys.keys()].sort((a, b) => sortKeys.get(a).localeCompare(sortKeys.get(b)))
+  }, [rows])
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase()
