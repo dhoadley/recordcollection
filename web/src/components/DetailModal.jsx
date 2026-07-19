@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
+import { TABLES } from '../lib/tables'
 import ArtSearchModal from './ArtSearchModal'
 
 export default function DetailModal({ table, item, onClose, onChanged }) {
@@ -23,6 +24,11 @@ export default function DetailModal({ table, item, onClose, onChanged }) {
     if (!confirm(msg)) return
     await supabase.from(table).delete().eq('id', item.id)
     onChanged()
+    onClose()
+  }
+
+  function handleEdit() {
+    navigate(TABLES[table].editPath(item.id))
     onClose()
   }
 
@@ -83,12 +89,20 @@ export default function DetailModal({ table, item, onClose, onChanged }) {
           </div>
 
           <div className="px-5 pb-5 flex items-center justify-between border-t border-zinc-700 pt-4">
-            <button
-              onClick={handleRemove}
-              className="text-red-400 hover:text-red-300 text-sm transition-colors"
-            >
-              Remove
-            </button>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={handleRemove}
+                className="text-red-400 hover:text-red-300 text-sm transition-colors"
+              >
+                Remove
+              </button>
+              <button
+                onClick={handleEdit}
+                className="text-zinc-400 hover:text-white text-sm transition-colors"
+              >
+                Edit
+              </button>
+            </div>
             {table === 'wishlist' ? (
               <button
                 onClick={handleBuy}
