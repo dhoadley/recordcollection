@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { searchMusicBrainzCovers } from '../lib/metadata'
+import { uploadCoverArt } from '../lib/coverArt'
 
 export default function ArtSearchModal({ table, id, artist, title, onClose, onSaved }) {
   const [query, setQuery] = useState(`${artist} ${title}`.trim())
   const [covers, setCovers] = useState([])
   const [loading, setLoading] = useState(true)
   const [hidden, setHidden] = useState({}) // thumbs that failed to load
+  const [uploading, setUploading] = useState(false)
   const debounceRef = useRef(null)
+  const fileInputRef = useRef(null)
 
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -29,6 +32,22 @@ export default function ArtSearchModal({ table, id, artist, title, onClose, onSa
   async function removeArt() {
     await supabase.from(table).update({ cover_art_url: null }).eq('id', id)
     onSaved()
+  }
+
+  async function handleFileChange(e) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setUploading(true)
+    try {
+      const url = await uploadCoverArt(table, id, file)
+      await supabase.from(table).update({ cover_art_url: url }).eq('id', id)
+      onSaved()
+    } catch (err) {
+      alert(`Could not upload photo: ${err.message}`)
+    } finally {
+      setUploading(false)
+    }
   }
 
   return (
@@ -54,6 +73,22 @@ export default function ArtSearchModal({ table, id, artist, title, onClose, onSa
             placeholder="Search MusicBrainz..."
             className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-rose-500 placeholder-zinc-500"
           />
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          <button
+            type="button"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="mt-2 w-full text-center bg-zinc-900 hover:bg-zinc-700 disabled:opacity-60 border border-zinc-700 rounded-lg px-4 py-2 text-sm text-zinc-300 transition-colors"
+          >
+            {uploading ? 'Uploading…' : '📷 Use your own photo'}
+          </button>
         </div>
         <div className="overflow-y-auto p-4">
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
