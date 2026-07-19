@@ -54,6 +54,27 @@ export default function RecordFormPage({ table }) {
     return () => clearTimeout(debounceRef.current)
   }, [term])
 
+  // Re-check for duplicates whenever artist/title change, whether from a
+  // search selection or manual typing, so the warning stays accurate.
+  const dupCheckRef = useRef(null)
+  useEffect(() => {
+    const artist = form.artist.trim()
+    const title = form.title.trim()
+    if (dupCheckRef.current) clearTimeout(dupCheckRef.current)
+    if (!artist || !title) {
+      setInCollection(false)
+      setInWishlist(false)
+      return
+    }
+    dupCheckRef.current = setTimeout(async () => {
+      setInCollection(await existsIn('albums', artist, title))
+      if (table === 'wishlist') {
+        setInWishlist(await existsIn('wishlist', artist, title))
+      }
+    }, 400)
+    return () => clearTimeout(dupCheckRef.current)
+  }, [form.artist, form.title, table])
+
   function update(field, value) {
     setForm((f) => ({ ...f, [field]: value }))
   }
@@ -77,10 +98,24 @@ export default function RecordFormPage({ table }) {
 
   async function handleSubmit(e) {
     e.preventDefault()
+    const artist = form.artist.trim()
+    const title = form.title.trim()
+
+    // Re-check right before saving in case the debounced check above hasn't
+    // caught up with the latest edits.
+    const duplicate = await existsIn(table, artist, title)
+    if (duplicate) {
+      const noun = table === 'wishlist' ? 'wishlist' : 'collection'
+      const proceed = window.confirm(
+        `"${title}" by ${artist} already appears to be in your ${noun}. Add it anyway?`
+      )
+      if (!proceed) return
+    }
+
     setSaving(true)
     const { error } = await supabase.from(table).insert({
-      artist: form.artist.trim(),
-      title: form.title.trim(),
+      artist,
+      title,
       year: form.year ? Number(form.year) : null,
       genre: form.genre.trim() || null,
       cover_art_url: form.cover_art_url.trim() || null,
