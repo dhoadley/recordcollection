@@ -1,10 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { TABLES } from '../lib/tables'
 import { defaultSortArtist } from '../lib/sorting'
 import Header from '../components/Header'
 import DetailModal from '../components/DetailModal'
+import ArtistIndexOverlay from '../components/ArtistIndexOverlay'
+
+const SWIPE_THRESHOLD = 70
 
 export default function CollectionPage({ table }) {
   const cfg = TABLES[table]
@@ -14,6 +17,10 @@ export default function CollectionPage({ table }) {
   const [genre, setGenre] = useState('')
   const [artist, setArtist] = useState('')
   const [selected, setSelected] = useState(null)
+  const [indexOpen, setIndexOpen] = useState(false)
+  const [activeArtist, setActiveArtist] = useState(null)
+  const itemRefs = useRef(new Map())
+  const gridTouchRef = useRef(null)
 
   const load = useCallback(async () => {
     const { data, error } = await supabase
@@ -59,6 +66,58 @@ export default function CollectionPage({ table }) {
       return true
     })
   }, [rows, q, genre, artist])
+
+  // Distinct artists within the current search/genre filters, in the same
+  // order as the grid, so the index and grid stay positionally in sync.
+  const filteredArtists = useMemo(() => {
+    const sortKeys = new Map()
+    for (const r of filtered) {
+      if (r.artist && !sortKeys.has(r.artist)) {
+        sortKeys.set(r.artist, r.sort_artist || defaultSortArtist(r.artist))
+      }
+    }
+    return [...sortKeys.entries()]
+      .map(([name, sortKey]) => ({ name, sortKey }))
+      .sort((a, b) => a.sortKey.localeCompare(b.sortKey))
+  }, [filtered])
+
+  function getCurrentTopArtist() {
+    const headerOffset = 90
+    for (const item of filtered) {
+      const node = itemRefs.current.get(item.id)
+      if (!node) continue
+      if (node.getBoundingClientRect().bottom > headerOffset) return item.artist
+    }
+    return filtered[0]?.artist ?? null
+  }
+
+  function openIndex() {
+    setActiveArtist(getCurrentTopArtist())
+    setIndexOpen(true)
+  }
+
+  function jumpToArtist(name) {
+    setIndexOpen(false)
+    const targetId = filtered.find((r) => r.artist === name)?.id
+    if (targetId == null) return
+    requestAnimationFrame(() => {
+      itemRefs.current.get(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
+  }
+
+  function handleGridTouchStart(e) {
+    const t = e.touches[0]
+    gridTouchRef.current = { x: t.clientX, y: t.clientY }
+  }
+
+  function handleGridTouchEnd(e) {
+    if (!gridTouchRef.current) return
+    const t = e.changedTouches[0]
+    const dx = t.clientX - gridTouchRef.current.x
+    const dy = t.clientY - gridTouchRef.current.y
+    gridTouchRef.current = null
+    if (dx > SWIPE_THRESHOLD && Math.abs(dx) > Math.abs(dy) * 1.5) openIndex()
+  }
 
   const inputClass =
     'bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-rose-500 placeholder-zinc-500'
@@ -125,12 +184,20 @@ export default function CollectionPage({ table }) {
               {filtered.length} {cfg.countNoun}
               {filtered.length !== 1 ? 's' : ''}
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            <div
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 touch-pan-y"
+              onTouchStart={handleGridTouchStart}
+              onTouchEnd={handleGridTouchEnd}
+            >
               {filtered.map((item) => (
                 <div
                   key={item.id}
+                  ref={(el) => {
+                    if (el) itemRefs.current.set(item.id, el)
+                    else itemRefs.current.delete(item.id)
+                  }}
                   onClick={() => setSelected(item)}
-                  className="cursor-pointer bg-zinc-800 rounded-lg overflow-hidden transition-all duration-200 hover:scale-[1.03] hover:shadow-lg hover:shadow-black/50 hover:ring-1 hover:ring-rose-500/30"
+                  className="scroll-mt-20 cursor-pointer bg-zinc-800 rounded-lg overflow-hidden transition-all duration-200 hover:scale-[1.03] hover:shadow-lg hover:shadow-black/50 hover:ring-1 hover:ring-rose-500/30"
                 >
                   {item.cover_art_url ? (
                     <img
@@ -155,6 +222,25 @@ export default function CollectionPage({ table }) {
           </>
         )}
       </main>
+
+      {!loading && filtered.length > 0 && !indexOpen && (
+        <button
+          onClick={openIndex}
+          aria-label="Jump to artist index"
+          className="fixed right-0 top-1/2 -translate-y-1/2 z-20 bg-zinc-800/90 hover:bg-zinc-700 text-zinc-300 text-xs font-display tracking-widest py-3 px-1 rounded-l-md shadow-lg"
+        >
+          A–Z
+        </button>
+      )}
+
+      {indexOpen && (
+        <ArtistIndexOverlay
+          artists={filteredArtists}
+          activeArtist={activeArtist}
+          onSelect={jumpToArtist}
+          onClose={() => setIndexOpen(false)}
+        />
+      )}
 
       {selected && (
         <DetailModal

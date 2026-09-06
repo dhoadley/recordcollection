@@ -86,6 +86,18 @@ export default function DetailModal({ table, item, onClose, onChanged }) {
               {item.year && <span>{item.year}</span>}
               {item.genre && <span>{item.genre}</span>}
             </div>
+
+            <a
+              href={`https://www.discogs.com/search/?${new URLSearchParams({
+                q: `${item.artist} ${item.title}`,
+                type: 'release',
+              })}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block mt-4 text-rose-500 hover:text-rose-400 text-xs transition-colors"
+            >
+              Search Discogs for tracklist ↗
+            </a>
           </div>
 
           <div className="px-5 pb-5 flex items-center justify-between border-t border-zinc-700 pt-4">
